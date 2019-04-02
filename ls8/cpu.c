@@ -80,6 +80,7 @@ void alu(struct cpu *cpu, enum alu_op op, unsigned char regA, unsigned char regB
 void cpu_run(struct cpu *cpu)
 {
   int running = 1; // True until we get a HLT instruction
+  int top = 244;
 
   while (running) {
     // TODO
@@ -95,7 +96,6 @@ void cpu_run(struct cpu *cpu)
 
     switch(command) {
         case LDI:
-            //Retrieve the Two Arguments from RAM
             operand_one = cpu->ram[++cpu->pc];
             operand_two = cpu->ram[++cpu->pc];
             cpu->registers[operand_one] = (unsigned char)operand_two;
@@ -112,6 +112,19 @@ void cpu_run(struct cpu *cpu)
             int register_zero = cpu->registers[operand_one];
             int register_one = cpu->registers[operand_two];
             cpu->registers[operand_one]*=register_one;
+            cpu->pc++;
+            break;
+        case PUSH:
+            operand_one = cpu->ram[++cpu->pc];
+            int reg_int = cpu->registers[operand_one];
+            cpu->ram[top] = reg_int;
+            top--;
+            cpu->pc++;
+            break;
+        case POP:
+            top++;
+            operand_one = cpu->ram[++cpu->pc];
+            cpu->registers[operand_one] = cpu->ram[top];
             cpu->pc++;
             break;
         case HLT:
