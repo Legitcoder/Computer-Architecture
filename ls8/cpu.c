@@ -1,30 +1,63 @@
 #include "cpu.h"
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <math.h>
 #define DATA_LEN 6
 
 /**
  * Load the binary bytes from a .ls8 source file into a RAM array
  */
-void cpu_load(struct cpu *cpu)
+void cpu_load(struct cpu *cpu, char *filename)
 {
-  char data[DATA_LEN] = {
-    // From print8.ls8
-    0b10000010, // LDI R0,8
-    0b00000000,
-    0b00001000,
-    0b01000111, // PRN R0
-    0b00000000,
-    0b00000001  // HLT
-  };
+  FILE *file = fopen(filename, "r");
+  FILE *dummy = fopen(filename, "r");
+
+  if(file == NULL) {
+      printf("File is not opening!\n");
+  }
+
+  //Used to get each line
+  char line[100];
+
+  int line_count = 0;
+  int line_increment = 0;
+
+  //Use dummy to get line count
+  //This is needed because there's an extra line
+  //of complete whitespace that needs to be ignored
+  while(!feof(dummy)) {
+    char ch = fgetc(dummy);
+    if(ch == '\n'){
+        line_count++;
+    }
+  }
+
+  //Data is equivalent to line_count
+  long data[line_count];
+  int i = 0;
+  while(i < line_count) {
+    fgets(line, 100, file);
+      if(line[0] == '#'){
+          line_count--;
+          continue;
+      }
+    *(line+8) = '\0';
+    printf("%s", line);
+    long l = strtol(line, NULL, 2);
+    printf(" Decimal: %lu", l);
+    data[i] = l;
+    printf(" Line: %d\n", i+1);
+    i++;
+  }
 
   int address = 0;
 
-  for (int i = 0; i < DATA_LEN; i++) {
+  for (int i = 0; i < line_count; i++) {
     cpu->ram[address++] = data[i];
   }
 
-  // TODO: Replace this with something less hard-coded
+  fclose(file);
 }
 
 /**
