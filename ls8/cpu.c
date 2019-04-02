@@ -1,5 +1,6 @@
 #include "cpu.h"
-
+#include <stdlib.h>
+#include <string.h>
 #define DATA_LEN 6
 
 /**
@@ -55,6 +56,38 @@ void cpu_run(struct cpu *cpu)
     // 4. switch() over it to decide on a course of action.
     // 5. Do whatever the instruction should do according to the spec.
     // 6. Move the PC to the next instruction.
+
+    unsigned char command = cpu->ram[cpu->pc];
+    //printf("%d\n", command == LDI);
+    int operand_one, operand_two;
+
+    switch(command) {
+        case LDI:
+            //Retrieve the Two Arguments from RAM
+            operand_one = cpu->ram[++cpu->pc];
+            operand_two = cpu->ram[++cpu->pc];
+            //printf("Operand One: %d\n", operand_one);
+            //printf("Operand Two: %d\n", operand_two);
+            cpu->registers[operand_one] = (unsigned char)operand_two;
+            //printf("Register Zero: %d\n", cpu->registers[operand_one]);
+            cpu->pc++;
+            //printf("Program Counter: %d\n", cpu->pc);
+        case PRN:
+            //printf("Program Counter: %d\n", cpu->pc);
+            operand_one = cpu->ram[++cpu->pc];
+            //printf("Program Counter: %d\n", cpu->pc);
+            //printf("Operand One: %d\n", operand_one);
+            printf("%d\n", cpu->registers[operand_one]);
+            cpu->pc++;
+        case HLT:
+            //printf("COMMAND: %d\n", cpu->ram[cpu->pc]);
+            printf("HALTED\n");
+            running = 0;
+            break;
+        default:
+            printf("Unrecognized Instruction\n");
+            exit(1);
+    }
   }
 }
 
@@ -64,4 +97,17 @@ void cpu_run(struct cpu *cpu)
 void cpu_init(struct cpu *cpu)
 {
   // TODO: Initialize the PC and other special registers
+  cpu->pc = 0;
+  memset(cpu->registers, '0',  8 * sizeof(char));
+  memset(cpu->ram, '0',  256 * sizeof(char));
+}
+
+void cpu_ram_read(struct cpu *cpu, int increment)
+{
+
+}
+
+void cpu_ram_write()
+{
+
 }
