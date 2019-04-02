@@ -100,10 +100,20 @@ void cpu_run(struct cpu *cpu)
             operand_two = cpu->ram[++cpu->pc];
             cpu->registers[operand_one] = (unsigned char)operand_two;
             cpu->pc++;
+            break;
         case PRN:
             operand_one = cpu->ram[++cpu->pc];
             printf("%d\n", cpu->registers[operand_one]);
             cpu->pc++;
+            break;
+        case MUL:
+            operand_one = cpu->ram[++cpu->pc];
+            operand_two = cpu->ram[++cpu->pc];
+            int register_zero = cpu->registers[operand_one];
+            int register_one = cpu->registers[operand_two];
+            cpu->registers[operand_one]*=register_one;
+            cpu->pc++;
+            break;
         case HLT:
             printf("HALTED\n");
             running = 0;
