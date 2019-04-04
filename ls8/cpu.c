@@ -15,13 +15,13 @@ void cpu_load(struct cpu *cpu, char *filename)
 
   if(file == NULL) {
       printf("File is not opening!\n");
+      return;
   }
 
   //Used to get each line
   char line[100];
 
   int line_count = 0;
-  int line_increment = 0;
 
   //Use dummy to get line count
   //This is needed because there's an extra line
@@ -43,11 +43,11 @@ void cpu_load(struct cpu *cpu, char *filename)
           continue;
       }
     *(line+8) = '\0';
-    printf("%s", line);
+    //printf("%s", line);
     long l = strtol(line, NULL, 2);
-    printf(" Decimal: %lu", l);
+    //printf(" Decimal: %lu", l);
     data[i] = l;
-    printf(" Line: %d\n", i+1);
+    //printf(" Line: %d\n", i+1);
     i++;
   }
 
@@ -83,14 +83,6 @@ void cpu_run(struct cpu *cpu)
   int top = 244;
 
   while (running) {
-    // TODO
-    // 1. Get the value of the current instruction (in address PC).
-    // 2. Figure out how many operands this next instruction requires
-    // 3. Get the appropriate value(s) of the operands following this instruction
-    // 4. switch() over it to decide on a course of action.
-    // 5. Do whatever the instruction should do according to the spec.
-    // 6. Move the PC to the next instruction.
-
     unsigned char command = cpu->ram[cpu->pc];
     int operand_one, operand_two;
 
@@ -106,25 +98,38 @@ void cpu_run(struct cpu *cpu)
             printf("%d\n", cpu->registers[operand_one]);
             cpu->pc++;
             break;
+        case CALL:
+            operand_one = cpu->ram[++cpu->pc];
+            unsigned int address = cpu->registers[operand_one];
+            unsigned int saved = ++cpu->pc;
+            cpu->ram[--top] = (unsigned char)saved;
+            cpu->pc = address;
+            break;
         case MUL:
             operand_one = cpu->ram[++cpu->pc];
             operand_two = cpu->ram[++cpu->pc];
-            int register_zero = cpu->registers[operand_one];
             int register_one = cpu->registers[operand_two];
             cpu->registers[operand_one]*=register_one;
+            cpu->pc++;
+            break;
+        case ADD:
+            operand_one = cpu->ram[++cpu->pc];
+            operand_two = cpu->ram[++cpu->pc];
+            cpu->registers[operand_one] += cpu->registers[operand_two];
             cpu->pc++;
             break;
         case PUSH:
             operand_one = cpu->ram[++cpu->pc];
             int reg_int = cpu->registers[operand_one];
-            cpu->ram[top] = reg_int;
-            top--;
+            cpu->ram[--top] = (unsigned char)reg_int;
             cpu->pc++;
             break;
+        case RET:
+            cpu->pc = cpu->ram[top++];
+            break;
         case POP:
-            top++;
             operand_one = cpu->ram[++cpu->pc];
-            cpu->registers[operand_one] = cpu->ram[top];
+            cpu->registers[operand_one] = cpu->ram[top++];
             cpu->pc++;
             break;
         case HLT:
